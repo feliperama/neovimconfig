@@ -1,10 +1,5 @@
--- nvim-modern — a clean Lua + native-LSP starter config.
---
--- Launch it fully isolated from your existing ~/.config/nvim with:
---     NVIM_APPNAME=nvim-modern nvim
--- That makes Neovim read config from ~/.config/nvim-modern and keep its data,
--- state and plugins under ~/.local/{share,state}/nvim-modern — nothing here
--- ever touches your current setup.
+-- A clean Lua + native-LSP Neovim config. See README.md for install.
+-- Clone into ~/.config/nvim and run `nvim`; everything bootstraps on first launch.
 
 -- Leader keys must be set BEFORE lazy.nvim / plugins load so mappings register
 -- against the right leader.
@@ -13,7 +8,7 @@ vim.g.maplocalleader = ' '
 
 require('config.options')
 
--- Bootstrap lazy.nvim into the (isolated) data dir.
+-- Bootstrap lazy.nvim into the data dir.
 local lazypath = vim.fn.stdpath('data') .. '/lazy/lazy.nvim'
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
   local out = vim.fn.system({

@@ -1,51 +1,50 @@
-# nvim-modern
+# neovimconfig
 
-A clean, minimal Neovim **0.12** starter: Lua + native LSP, as an isolated alternative
-to a vim-plug + coc.nvim setup. Nothing here touches your existing `~/.config/nvim`.
-
-## Launch (isolated)
-
-```sh
-NVIM_APPNAME=nvim-modern nvim
-```
-
-`NVIM_APPNAME` makes Neovim use:
-
-| Purpose | Path |
-|---|---|
-| config | `~/.config/nvim-modern` |
-| data (plugins, mason, parsers) | `~/.local/share/nvim-modern` |
-| state (undo, shada, logs) | `~/.local/state/nvim-modern` |
-
-So the plugin-manager bootstrap and every server/parser stays fully separate from your
-current config. Make an alias once you're happy with it:
-
-```sh
-alias nvm='NVIM_APPNAME=nvim-modern nvim'
-```
+A clean, minimal Neovim **0.12** config: Lua + native LSP.
 
 ## Prerequisites
 
-- **Neovim ≥ 0.11** (built/tested on 0.12.4).
-- `git`, a C compiler (Xcode CLT), `node` — for LSP servers.
-- **`tree-sitter` CLI** — required by nvim-treesitter's *main* branch to compile parsers.
-  Installed via `brew install tree-sitter-cli`.
-- `fzf`, `ripgrep` (`rg`), `fd` — used by the fuzzy finder. All already present.
+Install these **before** first launch. On macOS with Homebrew (`git` and a C compiler come
+with the Xcode Command Line Tools — `xcode-select --install`):
 
-## First run
+```sh
+brew install neovim node fzf ripgrep fd tree-sitter-cli
+```
 
-On first launch everything bootstraps automatically:
+| Tool | Why it's needed |
+|---|---|
+| **Neovim ≥ 0.11** | tested on 0.12.4 (uses `vim.lsp.config`/`enable`, `winborder`, …) |
+| **C compiler** (`cc`) | compiles Treesitter parsers |
+| **`tree-sitter` CLI** | nvim-treesitter's *main* branch builds parsers with it — **without it, highlighting won't compile** |
+| **`node`** | runs the TypeScript/JavaScript language server |
+| **`fzf`, `ripgrep`, `fd`** | the fuzzy finder (files / grep) |
 
-1. **lazy.nvim** self-installs, then installs all plugins.
-2. **`:Lazy`** — plugin manager UI (install / update / profile / clean). Runs `:Lazy sync`
-   to reconcile with the specs.
-3. **`:Mason`** — LSP server installer UI. `lua_ls` and `typescript-language-server` are
-   installed automatically (via `mason-lspconfig`'s `ensure_installed`) the first time you
-   open a Lua/TS/JS file. Use `:Mason` to add more.
-4. Treesitter parsers (`typescript`, `tsx`, `javascript`, `lua`, `json`, …) install on
-   startup; `:TSUpdate` updates them.
+## Installation
 
-> This config was pre-synced during setup, so your first interactive launch is already warm.
+Clone into your Neovim config directory and launch:
+
+```sh
+git clone https://github.com/feliperama/neovimconfig ~/.config/nvim
+nvim
+```
+
+> If `~/.config/nvim` already exists, move it aside first (`mv ~/.config/nvim ~/.config/nvim.bak`).
+
+## First launch — what happens automatically
+
+Everything bootstraps on the first `nvim`; give it a minute and stay connected to the
+network:
+
+1. **lazy.nvim** self-installs, then installs every plugin at the versions pinned in
+   `lazy-lock.json`. `blink.cmp` downloads its prebuilt completion binary (only needs Rust
+   if no prebuilt exists for your platform).
+2. **Treesitter parsers** (`typescript`, `tsx`, `javascript`, `lua`, `json`, …) compile via
+   the `tree-sitter` CLI. If the first file's highlighting looks plain, restart `nvim` once
+   the parsers finish (or run `:TSUpdate`).
+3. **LSP servers** (`lua_ls`, `typescript-language-server`) install the first time you open
+   a Lua/TS/JS file (via `mason-lspconfig`'s `ensure_installed`).
+4. Check status any time: **`:Lazy`** (plugins), **`:Mason`** (LSP servers),
+   **`:checkhealth`** (diagnostics). If anything looks incomplete, run **`:Lazy sync`**.
 
 ## File layout
 

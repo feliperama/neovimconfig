@@ -32,7 +32,7 @@ o.smartindent = true
 -- Behaviour
 o.mouse = 'a'
 o.clipboard = 'unnamedplus'   -- yank/paste through the system clipboard
-o.undofile = true             -- persistent undo (under the isolated state dir)
+o.undofile = true             -- persistent undo across sessions
 o.updatetime = 250
 o.timeoutlen = 400
 o.completeopt = { 'menu', 'menuone', 'noselect' }
