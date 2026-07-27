@@ -1,5 +1,11 @@
 -- Editor options. Kept small and opinionated; tweak freely.
 
+-- Set true when your terminal font is a Nerd Font (e.g. "JetBrainsMono Nerd
+-- Font") to enable file-type icons in the file explorer; false for a plain font
+-- like Monaco, which falls back to text markers that any font can render.
+-- This is the ONLY nvim setting to flip when you change Alacritty's font family.
+vim.g.have_nerd_font = false
+
 local o = vim.opt
 
 -- UI
