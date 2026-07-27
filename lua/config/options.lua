@@ -4,7 +4,7 @@
 -- Font") to enable file-type icons in the file explorer; false for a plain font
 -- like Monaco, which falls back to text markers that any font can render.
 -- This is the ONLY nvim setting to flip when you change Alacritty's font family.
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 local o = vim.opt
 
