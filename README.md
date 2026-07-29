@@ -52,13 +52,14 @@ network:
 init.lua                  entry: leader, options, lazy bootstrap, module requires
 lua/config/options.lua    editor settings
 lua/config/keymaps.lua    all key bindings (namespace prefixes + LSP + motion + git …)
-lua/config/util.lua       helpers (copy path, quickhl, LSP rename-file)
+lua/config/util.lua       helpers (copy path, quickhl, LSP rename-file, substitute)
 lua/plugins/lsp.lua       mason + lspconfig + blink.cmp + lazydev
 lua/plugins/treesitter.lua
 lua/plugins/finder.lua    fzf-lua
 lua/plugins/explorer.lua  neo-tree
 lua/plugins/git.lua       fugitive + gitsigns
 lua/plugins/editor.lua    flash, surround, autopairs, marks
+lua/plugins/format.lua    conform + mason-tool-installer (prettier/stylua)
 lua/plugins/ui.lua        vim-one (colorscheme), lualine, which-key
 ```
 
@@ -98,6 +99,8 @@ hold the prefix.
 | `sg` | Vertical split (`:vsplit`) |
 | `sc` | Close window · `so` only window |
 | `sh/sj/sk/sl` | Move between windows |
+| `sb` | Back to previous (alternate) buffer (`:b#`) |
+| `ss` | Swap pane positions (`<C-w>R`) |
 
 ### `t` — Tabs
 | Key | Action |
@@ -126,12 +129,23 @@ hold the prefix.
 | Key | Action |
 |---|---|
 | `<leader>saw` | Substitute word under cursor across the file |
+| `S` (visual) | Substitute the **selection** across the file — visual twin of `<leader>saw` |
+| `<leader>f` | **Format** — whole buffer, or just the selection in visual mode |
+| `ae` | Text object: **the entire file** (`vae`, `yae`, `=ae`, …) |
 | `<leader>w` | Toggle color-highlight on word under cursor (quickhl-style) |
 | `mm` / `mn` / `mp` / `dm` | Toggle bookmark / next / prev / clear (marks.nvim) |
-| `<leader><leader>` | Flash jump (easymotion replacement) |
+| `/` | Flash jump, 2 chars, across windows (old `easymotion-overwin-f2`) |
+| `<leader>/` | Native `/` search (regex, history, `n`/`N`) |
+| `<leader><leader>` | Flash jump (free-length) |
 | `<leader>S` | Flash treesitter select |
+| `gs` / `gS` (visual) | Surround selection — moved off `S`, which is now substitute |
 | `gc` / `gcc` | Comment (native, built-in) |
 | `<Esc>` | Clear search highlight |
+
+### Formatting
+`<leader>f` runs [conform.nvim](https://github.com/stevearc/conform.nvim): prettier for JS/TS/CSS/HTML/JSON/YAML/Markdown, stylua for Lua, and the language server as a fallback for anything else. Prettier is resolved from the project's own `node_modules/.bin` first (so each repo uses its pinned version and `.prettierrc`), falling back to the mason-installed `prettierd`. `:ConformInfo` shows what will run for the current buffer.
+
+In visual mode only the selection is sent to the formatter. Note this is bounded by what the formatter itself supports: prettier expands the range out to whole statements, while stylua only reformats nodes lying fully inside the range, so a partial-line selection can come back unchanged.
 
 ### LSP (buffer-local, active when a server is attached)
 | Key | Action |

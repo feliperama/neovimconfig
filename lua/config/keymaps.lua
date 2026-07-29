@@ -37,6 +37,29 @@ map('n', '<leader>q', 'q', { desc = 'Record macro (native q)' })
 -- cursor in the (empty) replacement slot, ready to type.
 map('n', '<leader>saw', [[:%s/\<<C-r><C-w>\>//g<Left><Left>]], { desc = 'Substitute word in file' })
 
+-- S (visual): same idea for an arbitrary selection instead of the cursor word.
+-- Takes over from nvim-surround's visual mapping, which moves to `gs` (see
+-- plugins/editor.lua).
+map('x', 'S', util.substitute_visual_selection, {
+  expr = true,
+  replace_keycodes = true,
+  desc = 'Substitute selection in file',
+})
+
+-- `ae` — "the entire file" text object (replaces kana/vim-textobj-entire, which
+-- needed vim-textobj-user as a dependency; a two-line mapping does the same job).
+-- Works with any operator: vae selects the file, yae copies it, =ae reindents it.
+-- The :normal! makes a linewise visual selection over the whole buffer, which
+-- the pending operator then applies to.
+map({ 'x', 'o' }, 'ae', ':<C-u>normal! ggVG<cr>', { silent = true, desc = 'Text object: entire file' })
+
+-- <leader>f: format. Whole buffer in normal mode, just the selection in visual
+-- mode (conform.nvim works out the range) — the coc-format / coc-format-selected
+-- pair from the old config, collapsed into one key.
+map({ 'n', 'x' }, '<leader>f', function()
+  require('conform').format({ async = true, lsp_format = 'fallback' })
+end, { desc = 'Format buffer or selection' })
+
 -- <leader>w: toggle a color highlight on the word under the cursor (quickhl).
 map('n', '<leader>w', util.toggle_word_highlight, { desc = 'Highlight word under cursor' })
 

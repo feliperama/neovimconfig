@@ -57,6 +57,34 @@ function M.toggle_word_highlight()
   end
 end
 
+-- Visual-mode S: substitute the selected text across the file. The cmdline
+-- opens as `:%s/<selection>//g` with the cursor parked in the empty replacement
+-- slot -- the visual twin of <leader>saw (which uses the word under the cursor).
+--
+-- The pattern is prefixed with \V ("very nomagic") so the selection matches
+-- literally: only `\` and the `/` delimiter stay special, and both are escaped
+-- below. Without it, selecting something like `foo.bar()` would be read as a
+-- regex and match the wrong things.
+-- Used as the rhs of an <expr> mapping: returning the keys (rather than feeding
+-- them with nvim_feedkeys) keeps it replayable inside a macro and equivalent to
+-- <leader>saw's plain-string rhs.
+function M.substitute_visual_selection()
+  -- Read the selection while still in visual mode -- '< and '> aren't set yet.
+  local lines = vim.fn.getregion(vim.fn.getpos('v'), vim.fn.getpos('.'), { type = vim.fn.mode() })
+  if #lines == 0 then return '<Esc>' end
+
+  -- Escape each line first, then join: escaping after the join would mangle the
+  -- `\n` separators into a literal backslash + n.
+  for i, line in ipairs(lines) do
+    lines[i] = (line:gsub('\\', '\\\\'):gsub('/', '\\/'))
+  end
+  local pattern = table.concat(lines, '\\n')
+
+  -- <Esc> first: staying in visual mode would give `:'<,'>s/...`, scoping the
+  -- substitute to the selection instead of the whole file.
+  return '<Esc>:%s/\\V' .. pattern .. '//g<Left><Left>'
+end
+
 -- fm: rename / move the current file and let LSP fix up imports & references
 -- via workspace/willRenameFiles + workspace/didRenameFiles (0.11+ APIs).
 function M.lsp_rename_file()
