@@ -74,6 +74,8 @@ s('v', '<cmd>split<cr>', 'Split horizontal')
 s('g', '<cmd>vsplit<cr>', 'Split vertical')
 s('c', '<cmd>close<cr>', 'Close window')
 s('o', '<cmd>only<cr>', 'Close other windows')
+s('b', '<cmd>buffer #<cr>', 'Previous (alternate) buffer')
+s('s', '<C-w>R', 'Swap pane positions')
 s('h', '<C-w>h', 'Go to left window')
 s('j', '<C-w>j', 'Go to lower window')
 s('k', '<C-w>k', 'Go to upper window')
@@ -140,6 +142,20 @@ map('n', '<C-l>', function() require('smart-splits').move_cursor_right() end, { 
 --------------------------------------------------------------------------------
 map({ 'n', 'x', 'o' }, '<leader><leader>', function() require('flash').jump() end, { desc = 'Flash jump' })
 map({ 'n', 'x', 'o' }, '<leader>S', function() require('flash').treesitter() end, { desc = 'Flash treesitter' })
+
+-- `/` takes over from native search with a 2-char, cross-window jump — the
+-- flash equivalent of the old <Plug>(easymotion-overwin-f2). `max_length = 2`
+-- makes flash stop reading the pattern after two characters and show labels;
+-- `multi_window` (flash default) is what made easymotion's "overwin" variant
+-- able to land in another split.
+--
+-- Normal mode only, so visual/operator-pending `/` (e.g. `d/foo`) and `?` keep
+-- the native search. `<leader>/` is the escape hatch for a real regex search
+-- (with history and n/N); `;/` fuzzy-searches the buffer via fzf-lua.
+map('n', '/', function()
+  require('flash').jump({ search = { max_length = 2 } })
+end, { desc = 'Flash jump (2 chars, cross-window)' })
+map('n', '<leader>/', '/', { desc = 'Native search' })
 
 --------------------------------------------------------------------------------
 -- LSP — buffer-local, attached only when a server is running for the buffer.

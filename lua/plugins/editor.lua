@@ -2,8 +2,9 @@
 -- (Commenting is native `gc`/`gcc` on 0.10+ — no plugin.)
 return {
   -- Motion (easymotion replacement). `s` is taken by the [Windows] namespace,
-  -- so the enhanced char motions (f/t/F/T) are disabled and jump is bound to
-  -- <leader><leader> in keymaps.lua.
+  -- so the enhanced char motions (f/t/F/T) are disabled; jump is bound to
+  -- <leader><leader> and to `/` (2-char, easymotion-overwin-f2 style) in
+  -- keymaps.lua.
   {
     'folke/flash.nvim',
     event = 'VeryLazy',
