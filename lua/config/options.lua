@@ -10,7 +10,7 @@ local o = vim.opt
 
 -- UI
 o.number = true
-o.relativenumber = true
+o.relativenumber = false
 o.signcolumn = 'yes'          -- avoid text shifting when diagnostics/git signs appear
 o.cursorline = true
 o.termguicolors = true
@@ -36,7 +36,7 @@ o.softtabstop = 2
 o.smartindent = true
 
 -- Behaviour
-o.mouse = 'a'
+o.mouse = ''
 o.clipboard = 'unnamedplus'   -- yank/paste through the system clipboard
 o.undofile = true             -- persistent undo across sessions
 o.updatetime = 250

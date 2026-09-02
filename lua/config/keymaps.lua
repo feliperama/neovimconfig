@@ -70,7 +70,12 @@ local ff = namespace('FuzzyFinder', ';')
 ff('/', function() require('fzf-lua').blines() end, 'Lines in current file')
 ff('f', function() require('fzf-lua').files() end, 'Find files')
 ff('b', function() require('fzf-lua').buffers() end, 'Buffers')
-ff('g', function() require('fzf-lua').live_grep() end, 'Grep in project')
+ff('g', function()
+  require('fzf-lua').live_grep({
+    rg_opts = '--hidden --column --line-number --no-heading --color=always --smart-case '
+      .. '--max-columns=4096 -e',
+  })
+end, 'Grep in project')
 ff('G', function()
   -- Project grep excluding test/spec files.
   require('fzf-lua').live_grep({
@@ -116,10 +121,76 @@ t('o', '<cmd>tabonly<cr>', 'Close other tabs')
 
 --------------------------------------------------------------------------------
 -- [Terminal]  !
--- Minimal placeholder — wire up your tmux/vimux workflow here later.
+-- !! prompts for a command, then opens or reuses a right-hand tmux pane (the
+-- same shape as prefix-g in ~/.tmux.conf). The command is sent to interactive
+-- zsh, so it stays visible; submitting an empty prompt just opens/focuses zsh.
 --------------------------------------------------------------------------------
 local term = namespace('Terminal', '!')
-term('!', '<cmd>terminal<cr>', 'Open terminal')
+local terminal_pane_id
+
+term('!', function()
+  local nvim_width_ratio = 2 / 3
+  local command = vim.fn.input('!!')
+  vim.cmd('redraw')
+
+  if not vim.env.TMUX or vim.env.TMUX == '' then
+    vim.notify('!! requires Neovim to be running inside tmux', vim.log.levels.ERROR)
+    return
+  end
+
+  if terminal_pane_id then
+    local existing_pane_id = vim.fn.system({
+      'tmux',
+      'display-message',
+      '-p',
+      '-t',
+      terminal_pane_id,
+      '#{pane_id}',
+    })
+    if vim.v.shell_error ~= 0 or vim.trim(existing_pane_id) ~= terminal_pane_id then terminal_pane_id = nil end
+  end
+
+  if terminal_pane_id then
+    vim.fn.system({ 'tmux', 'select-pane', '-t', terminal_pane_id })
+    if vim.v.shell_error ~= 0 then terminal_pane_id = nil end
+  end
+
+  if not terminal_pane_id then
+    local terminal_width_percent = math.floor((1 - nvim_width_ratio) * 100)
+    local output = vim.fn.system({
+      'tmux',
+      'split-window',
+      '-P',
+      '-F',
+      '#{pane_id}',
+      '-h',
+      '-p',
+      tostring(terminal_width_percent),
+      '-c',
+      vim.fn.getcwd(),
+    })
+
+    if vim.v.shell_error ~= 0 then
+      vim.notify('Could not create tmux pane: ' .. vim.trim(output), vim.log.levels.ERROR)
+      return
+    end
+
+    terminal_pane_id = vim.trim(output)
+    if not terminal_pane_id:match('^%%%d+$') then
+      vim.notify('tmux returned an invalid pane ID: ' .. terminal_pane_id, vim.log.levels.ERROR)
+      terminal_pane_id = nil
+      return
+    end
+  end
+
+  if command ~= '' then
+    -- Type into the interactive shell instead of using `zsh -c`, so the command
+    -- remains visible at the prompt and the same pane can accept later commands.
+    vim.fn.system({ 'tmux', 'send-keys', '-t', terminal_pane_id, '-l', command })
+    vim.fn.system({ 'tmux', 'send-keys', '-t', terminal_pane_id, 'Enter' })
+  end
+end, 'Run command in reusable tmux pane')
+
 term('s', '<cmd>split | terminal<cr>', 'Terminal in horizontal split')
 term('v', '<cmd>vsplit | terminal<cr>', 'Terminal in vertical split')
 map('t', '<Esc><Esc>', [[<C-\><C-n>]], { desc = 'Terminal: exit to normal mode' })
@@ -137,6 +208,8 @@ g('l', '<cmd>Git log<cr>', 'Log')
 g('p', function() require('gitsigns').preview_hunk() end, 'Preview hunk')
 g('S', function() require('gitsigns').stage_hunk() end, 'Stage hunk')
 g('R', function() require('gitsigns').reset_hunk() end, 'Reset hunk')
+map('x', '<leader>gD', ":'<,'>Linediff<cr>", { desc = 'Diff selected lines' })
+map('x', '<leader>gR', '<cmd>LinediffReset<cr>', { desc = 'Reset line diff' })
 map('n', ']h', function() require('gitsigns').nav_hunk('next') end, { desc = 'Next git hunk' })
 map('n', '[h', function() require('gitsigns').nav_hunk('prev') end, { desc = 'Prev git hunk' })
 

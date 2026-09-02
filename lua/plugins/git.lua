@@ -10,4 +10,16 @@ return {
     event = { 'BufReadPre', 'BufNewFile' },
     opts = {},
   },
+  {
+    'AndrewRadev/linediff.vim',
+    cmd = {
+      'Linediff',
+      'LinediffAdd',
+      'LinediffLast',
+      'LinediffShow',
+      'LinediffReset',
+      'LinediffMerge',
+      'LinediffPick',
+    },
+  },
 }

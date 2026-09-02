@@ -108,10 +108,10 @@ hold the prefix.
 | `tt` | New tab · `tc` close · `to` only |
 | `th/tl` | Previous / next tab |
 
-### `!` — Terminal (placeholder; wire up tmux/vimux later)
+### `!` — Terminal
 | Key | Action |
 |---|---|
-| `!!` | Open terminal |
+| `!!` | Run a command in a reusable right-hand tmux pane using one-third of the width (empty command opens/focuses zsh) |
 | `!s` / `!v` | Terminal in horizontal / vertical split |
 | `<Esc><Esc>` | Leave terminal-insert mode |
 
@@ -123,6 +123,8 @@ hold the prefix.
 | `<leader>gs` | Status (`:Git`) |
 | `<leader>gb` | Blame · `<leader>gl` log · `<leader>gd` diff split |
 | `<leader>gp` | Preview hunk · `<leader>gS` stage hunk · `<leader>gR` reset hunk |
+| `<leader>gD` (visual) | Mark selected lines for Linediff comparison |
+| `<leader>gR` (visual) | Reset an active Linediff comparison |
 | `]h` / `[h` | Next / previous hunk |
 
 ### Editing / motion / misc
@@ -141,6 +143,13 @@ hold the prefix.
 | `gs` / `gS` (visual) | Surround selection — moved off `S`, which is now substitute |
 | `gc` / `gcc` | Comment (native, built-in) |
 | `<Esc>` | Clear search highlight |
+
+### Linediff
+Select one block and press `<leader>gD`, then select the second block and press
+`<leader>gD` again. Linediff opens the two selections in a new tab with diff mode
+enabled. Edit either temporary buffer and save it to update the corresponding
+original block. Use `<leader>gR` in visual mode, or `:LinediffReset`, to close the
+comparison and remove its markers.
 
 ### Formatting
 `<leader>f` runs [conform.nvim](https://github.com/stevearc/conform.nvim): prettier for JS/TS/CSS/HTML/JSON/YAML/Markdown, stylua for Lua, and the language server as a fallback for anything else. Prettier is resolved from the project's own `node_modules/.bin` first (so each repo uses its pinned version and `.prettierrc`), falling back to the mason-installed `prettierd`. `:ConformInfo` shows what will run for the current buffer.
