@@ -44,6 +44,13 @@ o.timeoutlen = 400
 o.completeopt = { 'menu', 'menuone', 'noselect' }
 o.confirm = true              -- prompt to save instead of failing on :q with changes
 
+-- Build folds from the Treesitter syntax tree, but open files fully expanded.
+o.foldmethod = 'expr'
+o.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+o.foldtext = ''               -- keep the fold's first source line unchanged
+o.foldlevel = 99
+o.foldlevelstart = 99
+
 -- Diagnostics presentation (native vim.diagnostic)
 vim.diagnostic.config({
   virtual_text = { prefix = '●' },

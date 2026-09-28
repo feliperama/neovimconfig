@@ -63,6 +63,24 @@ end, { desc = 'Format buffer or selection' })
 -- <leader>w: toggle a color highlight on the word under the cursor (quickhl).
 map('n', '<leader>w', util.toggle_word_highlight, { desc = 'Highlight word under cursor' })
 
+-- Fold the whole window at the selected depth. 1 closes every fold, while
+-- each higher number leaves one more outer level open; 0 opens everything.
+map('n', '<leader>0', function() vim.wo.foldlevel = 99 end, { desc = 'Folds: open all' })
+for key = 1, 9 do
+  local level = key - 1
+  map('n', '<leader>' .. key, function() vim.wo.foldlevel = level end, {
+    desc = 'Folds: close level ' .. key,
+  })
+end
+
+map('n', '<CR>', function()
+  if vim.fn.foldclosed('.') ~= -1 then
+    vim.cmd('normal! zo')
+  elseif vim.fn.foldlevel('.') > 0 then
+    vim.cmd('normal! zc')
+  end
+end, { desc = 'Toggle innermost fold' })
+
 --------------------------------------------------------------------------------
 -- [FuzzyFinder]  ;   (fzf-lua)
 --------------------------------------------------------------------------------
