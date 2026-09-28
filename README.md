@@ -80,8 +80,12 @@ hold the prefix.
 | `;/` | Fuzzy-search lines in the current file |
 | `;f` | Find files |
 | `;b` | Buffers |
-| `;g` | Live grep across the project |
-| `;G` | Live grep across the project, **excluding** test/spec files |
+| `;g` | Fuzzy-search project lines (lightweight filters) |
+| `;G` | Same fuzzy search, **excluding** test/spec files |
+| `;r` | Live regex search, including data and large files |
+
+See [Search tips and performance](#search-tips-and-performance) for matching syntax,
+search exclusions, and large-workspace workflows.
 
 ### `f` — Files
 | Key | Action |
@@ -168,6 +172,109 @@ In visual mode only the selection is sent to the formatter. Note this is bounded
 ### Completion (blink.cmp, `super-tab` preset)
 `<Tab>`/`<S-Tab>` select & accept and jump between snippet placeholders; `<C-Space>`
 opens the menu; `<C-e>` dismisses. Sources: LSP, snippets, path, buffer.
+
+## Search tips and performance
+
+### Fuzzy matching versus live grep
+
+`;g` and `;G` load project lines into fzf, which allows gaps between query characters.
+For example, `strip.createtoken` matches `t.stripe.createToken`. Lowercase queries
+match mixed-case text by default. Close matches rank first, but scattered letters
+across a long line can also match.
+
+To tighten a search, prefix individual fragments with `'` (no closing quote):
+
+| Query | Meaning |
+|---|---|
+| `strip.createtokn` | Fully fuzzy; gaps are allowed anywhere |
+| `'strip createtokn` | Literal `strip`, with fuzzy matching for `createtokn` |
+| `'strip 'createtok` | Both literal fragments must appear on the same line |
+
+fzf has no built-in maximum-gap setting. Mixing exact and fuzzy fragments is a useful
+way to reduce unrelated results while tolerating missing characters where needed.
+
+`;r` uses ripgrep's **regex matching**, rather than fuzzy matching. It searches files
+as you type and feeds only matching lines to the picker.
+
+### Default search exclusions
+
+To keep the fuzzy candidate set manageable, `;g` and `;G` skip:
+
+- CSV files (`*.csv`).
+- Dependency lockfiles: `package-lock.json`, `npm-shrinkwrap.json`, `yarn.lock`,
+  `pnpm-lock.yaml`, `bun.lock`, and `bun.lockb`.
+- Files larger than **1 MiB**, including source files over that limit.
+- `.git` metadata.
+
+`;G` also skips test/spec files and test directories. Use **`;r`** when you need
+CSVs, lockfiles, or large files: it has none of those data/size exclusions.
+All three mappings include hidden files, exclude `.git` metadata, respect ignore
+files such as `.gitignore` and `.rgignore`, and limit displayed line length to 4,096
+columns. Their options live in `lua/config/keymaps.lua`.
+
+### Faster searches in large workspaces
+
+**1. Search a smaller directory.** Searches normally start at Neovim's current
+working directory (`:pwd`). If it contains several repositories, the candidate set
+includes all of them, including nested copies of shared packages. Scope a picker
+without changing Neovim's working directory:
+
+```vim
+:FzfLua grep_project cwd=~/acuity/takecasper/account
+```
+
+This direct command uses the plugin defaults, not the lightweight filters attached
+to `;g` / `;G`. To use those mappings within a smaller scope, set the window-local
+working directory first, then press `;g`:
+
+```vim
+:lcd ~/acuity/takecasper/account
+```
+
+Use `:lcd -` to return to the previous directory.
+
+**2. Grep first, then fuzzy-filter.** This is especially useful when searching across
+multiple repositories:
+
+1. Press `;r`.
+2. Enter a reliable fragment, such as `stripe`, to narrow the results with ripgrep.
+3. Press **Ctrl-g** to switch to fuzzy filtering of those results.
+4. Refine the fuzzy query, for example with `createtokn`.
+
+Only lines matching the initial regex are available for fuzzy refinement. Press
+Ctrl-g again to return to regex search if you need to broaden the initial search.
+
+**3. Use project-specific `.rgignore` rules for bulk data.** Place a `.rgignore` in
+the workspace root to exclude exports or generated files from ripgrep searches:
+
+```gitignore
+# Example rules — choose the paths and file types appropriate for the project.
+*.csv
+package-lock.json
+**/scripts/removeTechIssueToAllSchoolExportFormat/full_queries/
+```
+
+These rules affect both the Neovim searches (including `;r`) and terminal ripgrep
+searches under that workspace. They do not change Git tracking. Avoid excluding an
+entire shared-code directory just because it is heavy: nested copies may differ.
+
+### Why reducing the candidate set helps
+
+Fuzzy project search loads every eligible line, not just lines containing a keyword.
+Large CSVs, JSON exports, lockfiles, and repeated package copies therefore affect
+startup time and filtering work even when they are unrelated to the query.
+
+In a local `takecasper` measurement, the lightweight filters reduced the candidate
+set from about **1.86 million to 717,000 lines**. A command-line ripgrep → fzf search
+for `strip.createtoken` took **0.925 s before** and **0.321 s after**, while retaining
+the expected source-code match. These are illustrative local measurements, not
+Neovim UI timings; results vary with workspace contents and machine load.
+
+Further reading:
+
+- [ripgrep: automatic filtering and ignore files](https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md#automatic-filtering)
+- [fzf: performance considerations](https://github.com/junegunn/fzf#performance)
+- [fzf-lua: search commands](https://github.com/ibhagwan/fzf-lua#search)
 
 ## Notes
 - Test-runner workflow (old vimux `!t` / `!!`) is left as a minimal terminal placeholder

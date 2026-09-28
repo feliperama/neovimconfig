@@ -74,12 +74,25 @@ for key = 1, 9 do
 end
 
 map('n', '<CR>', function()
-  if vim.fn.foldclosed('.') ~= -1 then
-    vim.cmd('normal! zo')
-  elseif vim.fn.foldlevel('.') > 0 then
-    vim.cmd('normal! zc')
+  -- gr uses quickfix: Enter should jump and close the list, not toggle folds.
+  if vim.bo.buftype == 'quickfix' then
+    local is_location_list = vim.fn.getwininfo(vim.api.nvim_get_current_win())[1].loclist == 1
+    return '<CR><Cmd>' .. (is_location_list and 'lclose' or 'cclose') .. '<CR>'
   end
-end, { desc = 'Toggle innermost fold' })
+
+  -- Keep native Enter in terminal and other special buffers.
+  if vim.bo.buftype ~= '' then
+    return '<CR>'
+  end
+
+  if vim.fn.foldclosed('.') ~= -1 then
+    return 'zo'
+  elseif vim.fn.foldlevel('.') > 0 then
+    return 'zc'
+  end
+
+  return '<CR>'
+end, { expr = true, remap = false, desc = 'Toggle innermost fold, otherwise native Enter' })
 
 --------------------------------------------------------------------------------
 -- [FuzzyFinder]  ;   (fzf-lua)
@@ -88,19 +101,29 @@ local ff = namespace('FuzzyFinder', ';')
 ff('/', function() require('fzf-lua').blines() end, 'Lines in current file')
 ff('f', function() require('fzf-lua').files() end, 'Find files')
 ff('b', function() require('fzf-lua').buffers() end, 'Buffers')
+-- Feed project lines to fzf for fuzzy matching; live_grep uses rg regex matching.
+-- Keep bulk data out of the fuzzy candidate set. Use ;r to search larger/data files.
+local project_rg_opts = '--hidden --column --line-number --no-heading --color=always --smart-case '
+  .. "--max-columns=4096 -g '!.git'"
+local fuzzy_rg_opts = project_rg_opts
+  .. " --max-filesize=1M -g '!*.csv' -g '!package-lock.json' -g '!npm-shrinkwrap.json'"
+  .. " -g '!yarn.lock' -g '!pnpm-lock.yaml' -g '!bun.lock' -g '!bun.lockb'"
 ff('g', function()
-  require('fzf-lua').live_grep({
-    rg_opts = '--hidden --column --line-number --no-heading --color=always --smart-case '
-      .. '--max-columns=4096 -e',
+  require('fzf-lua').grep_project({
+    rg_opts = fuzzy_rg_opts .. ' -e',
   })
-end, 'Grep in project')
+end, 'Fuzzy search project lines')
 ff('G', function()
   -- Project grep excluding test/spec files.
-  require('fzf-lua').live_grep({
-    rg_opts = "--column --line-number --no-heading --color=always --smart-case "
-      .. "-g '!*.{test,spec}.*' -g '!**/__tests__/**' -g '!**/{test,tests,spec,__mocks__}/**'",
+  require('fzf-lua').grep_project({
+    rg_opts = fuzzy_rg_opts
+      .. " -g '!*.{test,spec}.*' -g '!**/__tests__/**' -g '!**/{test,tests,spec,__mocks__}/**' -e",
   })
-end, 'Grep in project (no tests)')
+end, 'Fuzzy search project lines (no tests)')
+ff('r', function()
+  -- Ripgrep narrows results before loading them; Ctrl-g then fuzzy-filters them.
+  require('fzf-lua').live_grep({ rg_opts = project_rg_opts .. ' -e' })
+end, 'Live grep project (include data and large files)')
 
 --------------------------------------------------------------------------------
 -- [Files]  f
