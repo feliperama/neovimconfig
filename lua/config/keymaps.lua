@@ -109,6 +109,11 @@ s('j', '<C-w>j', 'Go to lower window')
 s('k', '<C-w>k', 'Go to upper window')
 s('l', '<C-w>l', 'Go to right window')
 
+map('n', '<Up>', '<cmd>resize -2<cr>', { desc = 'Decrease window height', silent = true })
+map('n', '<Down>', '<cmd>resize +2<cr>', { desc = 'Increase window height', silent = true })
+map('n', '<Left>', '<cmd>vertical resize +2<cr>', { desc = 'Increase window width', silent = true })
+map('n', '<Right>', '<cmd>vertical resize -2<cr>', { desc = 'Decrease window width', silent = true })
+
 --------------------------------------------------------------------------------
 -- [Tabs]  t
 --------------------------------------------------------------------------------
