@@ -12,6 +12,14 @@ return {
     opts = function()
       local opts = {
         close_if_last_window = true,
+        event_handlers = {
+          {
+            event = 'file_opened',
+            handler = function()
+              require('neo-tree.command').execute({ action = 'close' })
+            end,
+          },
+        },
         filesystem = {
           follow_current_file = { enabled = true },
           use_libuv_file_watcher = true,

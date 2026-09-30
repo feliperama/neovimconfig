@@ -8,20 +8,21 @@ end
 
 -- fy: relative path (to cwd) + current line number.
 function M.copy_relative_path()
-  local rel = vim.fn.expand('%')
-  if rel == '' then
+  local abs = vim.fn.expand('%:p')
+  if abs == '' then
     return vim.notify('No file in this buffer', vim.log.levels.WARN)
   end
+  local rel = vim.fn.fnamemodify(abs, ':.')
   yank(rel .. ':' .. vim.fn.line('.'))
 end
 
--- fY: absolute path.
+-- fY: absolute path + current line number.
 function M.copy_absolute_path()
   local abs = vim.fn.expand('%:p')
   if abs == '' then
     return vim.notify('No file in this buffer', vim.log.levels.WARN)
   end
-  yank(abs)
+  yank(abs .. ':' .. vim.fn.line('.'))
 end
 
 -- <leader>w: quickhl-style toggle. Assign a persistent color to the word under

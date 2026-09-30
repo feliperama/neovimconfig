@@ -91,7 +91,7 @@ search exclusions, and large-workspace workflows.
 | Key | Action |
 |---|---|
 | `fy` | Copy **relative** path + `:line` to clipboard |
-| `fY` | Copy **absolute** path to clipboard |
+| `fY` | Copy **absolute** path + `:line` to clipboard |
 | `fm` | Rename/move current file via **LSP** (updates imports) |
 | `fe` | Toggle file explorer (neo-tree) |
 | `ff` | Reveal current file in explorer |
