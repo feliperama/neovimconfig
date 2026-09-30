@@ -39,6 +39,7 @@ o.smartindent = true
 o.mouse = ''
 o.clipboard = 'unnamedplus'   -- yank/paste through the system clipboard
 o.undofile = true             -- persistent undo across sessions
+o.swapfile = false            -- do not create .swp files
 o.updatetime = 250
 o.timeoutlen = 400
 o.completeopt = { 'menu', 'menuone', 'noselect' }
