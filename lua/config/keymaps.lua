@@ -133,7 +133,14 @@ f('y', util.copy_relative_path, 'Copy relative path + line')
 f('Y', util.copy_absolute_path, 'Copy absolute path + line')
 f('m', util.lsp_rename_file, 'Rename/move file (LSP)')
 f('e', '<cmd>Neotree toggle<cr>', 'Toggle file explorer')
-f('f', '<cmd>Neotree reveal<cr>', 'Reveal current file')
+f('f', function()
+  require('neo-tree.command').execute({
+    source = 'filesystem',
+    action = 'focus',
+    reveal_file = vim.api.nvim_buf_get_name(0),
+    reveal_force_cwd = true,
+  })
+end, 'Reveal current file')
 
 --------------------------------------------------------------------------------
 -- [Windows]  s
