@@ -61,7 +61,44 @@ lua/plugins/git.lua       fugitive + gitsigns
 lua/plugins/editor.lua    flash, surround, autopairs, marks
 lua/plugins/format.lua    conform + mason-tool-installer (prettier/stylua)
 lua/plugins/ui.lua        vim-one (colorscheme), lualine, which-key
+lua/plugins/markdown.lua  Markdown styling, inline images + Mermaid diagrams
 ```
+
+## Markdown in Ghostty + tmux
+
+`render-markdown.nvim` styles headings, lists, tables, and code, with soft wrapping
+and hidden column guides while reading. Insert mode reveals the raw Markdown.
+`diagram.nvim` renders Mermaid fences inline through `image.nvim`, using the Kitty
+graphics backend supported by Ghostty and the `magick_cli` processor.
+`lua/config/image.lua` replaces the processor's basic box-sampling resize with
+Lanczos filtering to preserve diagram lettering when fitting terminal cells.
+Mermaid exports at 2× resolution; terminal-cell fitting can still reduce the
+displayed image, so the original in a system viewer may look sharper or larger.
+
+On macOS, install the two external tools (Mermaid CLI includes its browser runtime):
+
+```sh
+brew install imagemagick mermaid-cli
+```
+
+For tmux 3.3+, put these in `~/.tmux.conf` and reload it:
+
+```tmux
+set -gq allow-passthrough on
+set -g visual-activity off
+set -g focus-events on
+```
+
+Open `nvim ~/.config/nvim/markdown-test.md` in Ghostty, including inside tmux.
+Diagrams render automatically, clear during Insert mode, and refresh on leaving it.
+Images also clear when Neovim loses focus and return when it regains focus.
+Exit Neovim normally before killing or respawning its tmux pane: a forced kill
+can bypass Kitty graphics cleanup and leave stale images in the terminal.
+Use `<Space>mr` to toggle Markdown styling and `<Space>md` inside a Mermaid block
+to view the diagram in a dedicated tab (`q` returns). Ordinary Markdown image
+links also render inline. `:ImageReport` and `:checkhealth render-markdown` provide
+diagnostics. The existing `markdown` and `markdown_inline` Treesitter parsers are
+sufficient; a separate Mermaid parser is not required.
 
 ## Namespace-prefix bindings
 
