@@ -19,20 +19,14 @@ return {
   --
   -- As of nvim-surround v4, setup() no longer accepts a `keymaps` table -- the
   -- defaults are plain mappings created when the plugin loads, so they're
-  -- retargeted by disabling the visual ones and binding the <Plug> mappings by
-  -- hand. `init` (not `config`) sets the flag, since it has to land before the
-  -- plugin's own mappings are created.
+  -- retargeted by disabling the visual ones here and binding the <Plug> mappings
+  -- in config/keymaps.lua. `init` sets the flag before the plugin's own mappings
+  -- are created.
   {
     'kylechui/nvim-surround',
     event = 'VeryLazy',
     init = function()
       vim.g.nvim_surround_no_visual_mappings = true
-    end,
-    config = function()
-      -- gS (linewise) is re-bound to the same key it defaults to, so that
-      -- disabling the visual defaults doesn't quietly drop it.
-      vim.keymap.set('x', 'gs', '<Plug>(nvim-surround-visual)', { desc = 'Surround selection' })
-      vim.keymap.set('x', 'gS', '<Plug>(nvim-surround-visual-line)', { desc = 'Surround selection, on new lines' })
     end,
   },
 

@@ -8,6 +8,12 @@ return {
     dependencies = { 'nvim-tree/nvim-web-devicons' },
     opts = {
       winopts = { height = 0.85, width = 0.85, preview = { layout = 'vertical' } },
+      grep = {
+        winopts = {
+          title = ' Press Ctrl-g to alternate search modes ',
+          title_flags = false,
+        },
+      },
     },
   },
 }

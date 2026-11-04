@@ -26,6 +26,7 @@ return {
     '3rd/diagram.nvim',
     ft = 'markdown',
     dependencies = { '3rd/image.nvim', 'nvim-treesitter/nvim-treesitter' },
+    config = function(_, opts) require('config.diagram').setup(opts) end,
     opts = function()
       return {
         integrations = { require('diagram.integrations.markdown') },
@@ -34,17 +35,23 @@ return {
           clear_buffer = { 'BufLeave', 'InsertEnter' },
         },
         renderer_options = {
-          mermaid = { theme = 'dark', background = 'transparent', scale = 2 },
+          mermaid = {
+            theme = 'dark', background = 'transparent', scale = 2,
+            config = { layout = 'elk' },
+          },
         },
       }
     end,
+    -- Keep lazy.nvim's filetype-scoped loading keys here, not in keymaps.lua.
     keys = {
       {
         '<leader>md',
-        function() require('diagram').show_diagram_hover() end,
+        function() require('config.diagram').preview() end,
         ft = 'markdown',
         desc = 'View diagram in a tab',
       },
+      { '<leader>mR', function() require('config.diagram').refresh() end, ft = 'markdown', desc = 'Refresh Mermaid diagram cache' },
+      { '<leader>mo', function() require('config.diagram').open_svg() end, ft = 'markdown', desc = 'Open Mermaid SVG externally' },
     },
   },
   {
@@ -57,12 +64,13 @@ return {
       yaml = { enabled = false },
       code = { disable = { 'mermaid' } }, -- diagram.nvim owns these blocks
       win_options = {
-        wrap = { default = false, rendered = true },
-        linebreak = { default = false, rendered = true },
-        breakindent = { default = false, rendered = true },
+        wrap = { default = true, rendered = true },
+        linebreak = { default = true, rendered = true },
+        breakindent = { default = true, rendered = true },
         colorcolumn = { default = '80,120', rendered = '' },
       },
     },
+    -- Keep lazy.nvim's filetype-scoped loading key with the plugin spec.
     keys = {
       { '<leader>mr', '<cmd>RenderMarkdown toggle<cr>', ft = 'markdown', desc = 'Toggle Markdown rendering' },
     },

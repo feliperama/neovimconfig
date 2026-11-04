@@ -36,3 +36,6 @@ flowchart LR
 | --- | --- |
 | Space m r | Toggle Markdown styling |
 | Space m d | Open diagram under cursor |
+| o (diagram tab) | Open vector SVG externally |
+| Space m o | Open SVG directly from Mermaid source |
+| Space m R | Refresh the Mermaid PNG/SVG cache |

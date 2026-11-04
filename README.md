@@ -51,8 +51,10 @@ network:
 ```
 init.lua                  entry: leader, options, lazy bootstrap, module requires
 lua/config/options.lua    editor settings
-lua/config/keymaps.lua    all key bindings (namespace prefixes + LSP + motion + git …)
+lua/config/keymaps.lua    shared key bindings (namespace prefixes + LSP + motion + git …)
 lua/config/util.lua       helpers (copy path, quickhl, LSP rename-file, substitute)
+lua/config/diagram.lua    Mermaid renderer + preview-local key bindings
+lua/config/image.lua      ImageMagick resize override
 lua/plugins/lsp.lua       mason + lspconfig + blink.cmp + lazydev
 lua/plugins/treesitter.lua
 lua/plugins/finder.lua    fzf-lua
@@ -63,6 +65,9 @@ lua/plugins/format.lua    conform + mason-tool-installer (prettier/stylua)
 lua/plugins/ui.lua        vim-one (colorscheme), lualine, which-key
 lua/plugins/markdown.lua  Markdown styling, inline images + Mermaid diagrams
 ```
+
+Lazy-loading Markdown shortcuts stay in their plugin specs; completion keys come
+from blink.cmp's preset. Preview-only bindings stay with their local preview state.
 
 ## Markdown in Ghostty + tmux
 
@@ -75,11 +80,26 @@ Lanczos filtering to preserve diagram lettering when fitting terminal cells.
 Mermaid exports at 2× resolution; terminal-cell fitting can still reduce the
 displayed image, so the original in a system viewer may look sharper or larger.
 
-On macOS, install the two external tools (Mermaid CLI includes its browser runtime):
+On macOS, install ImageMagick and Neovim's isolated Mermaid CLI:
 
 ```sh
-brew install imagemagick mermaid-cli
+brew install imagemagick node
+npm install --prefix ~/.local/share/nvim/mermaid-cli --no-audit --no-fund @mermaid-js/mermaid-cli@11.12.0
 ```
+
+The CLI is pinned to 11.12.0 because it registers the ELK layout engine; the tested
+Homebrew CLI 12.0.0 silently fell back to the default layout. The isolated install
+does not replace the system `mmdc`. Puppeteer needs its matching browser runtime;
+if npm blocks its installation script and no compatible browser is cached, run
+`node ~/.local/share/nvim/mermaid-cli/node_modules/puppeteer/install.mjs`.
+For a custom `XDG_DATA_HOME`, use Neovim's `stdpath('data')` instead of
+`~/.local/share/nvim` in these commands.
+
+`lua/config/diagram.lua` supplies an option-aware Mermaid renderer and preview.
+ELK is the default layout; source directions such as `TD` and `LR` are preserved.
+A diagram can override the layout with Mermaid YAML frontmatter, for example
+`config: { layout: dagre }`. Inline and tab previews remain PNG; external previews
+are SVG with a dark background so labels remain readable in system viewers.
 
 For tmux 3.3+, put these in `~/.tmux.conf` and reload it:
 
@@ -100,12 +120,29 @@ links also render inline. `:ImageReport` and `:checkhealth render-markdown` prov
 diagnostics. The existing `markdown` and `markdown_inline` Treesitter parsers are
 sufficient; a separate Mermaid parser is not required.
 
+| Markdown shortcut | Action |
+|---|---|
+| `<Space>md` | Open diagram under cursor in a tab; `q` / Escape closes it |
+| `o` in a Mermaid preview tab | Generate and open SVG in the system's associated application |
+| `<Space>mo` | Open Mermaid SVG directly from its source block |
+| `<Space>mR` | Invalidate that Mermaid diagram's current PNG/SVG cache and re-render |
+| `<Space>mr` | Toggle Markdown styling |
+
+The cache lives in `~/.cache/nvim/diagram-cache/mermaid-local/` (under
+`stdpath('cache')` with XDG overrides). Keys include source, rendering options,
+format via extension, and the pinned CLI version, so option changes do not reuse
+stale output. Refresh regenerates the current layout; it does not randomize it.
+Mermaid source remains untouched when previewing, exporting, or refreshing.
+
 ## Namespace-prefix bindings
 
 Leader is `<Space>`. Single keys act as named "namespace" prefixes, declared through a
 readable `namespace('Files', 'f')` helper in `keymaps.lua` that keeps the grouped,
 self-documenting structure. which-key labels each group and lists its members when you
 hold the prefix.
+
+Bindings below are Normal mode unless marked otherwise. `<leader>` means `<Space>`.
+Plugin defaults and native shortcuts are explicitly identified where listed.
 
 > Note: the old config's `[Files]`+`<Nop>`+remap pseudo-key trick was dropped — it
 > conflicts with which-key (which claims the bare prefix key for its popup). The helper
@@ -142,6 +179,10 @@ search exclusions, and large-workspace workflows.
 | `sh/sj/sk/sl` | Move between windows |
 | `sb` | Back to previous (alternate) buffer (`:b#`) |
 | `ss` | Swap pane positions (`<C-w>R`) |
+| `<C-h>` / `<C-j>` / `<C-k>` / `<C-l>` | Move left / down / up / right between Neovim splits and tmux panes (smart-splits; tmux needs matching bindings) |
+| `<Up>` / `<Down>` | Decrease / increase window height by 2 rows |
+| `<Left>` / `<Right>` | Increase / decrease window width by 2 columns |
+| `<C-w>=` | Equalize split widths and heights in the current tab (native; press Ctrl-w, then `=`) |
 
 ### `t` — Tabs
 | Key | Action |
@@ -171,19 +212,42 @@ search exclusions, and large-workspace workflows.
 ### Editing / motion / misc
 | Key | Action |
 |---|---|
+| `q` | Quit current window (overrides native macro recording) |
+| `<leader>q` | Start recording a macro; then choose a register (native `q` stops recording) |
 | `<leader>saw` | Substitute word under cursor across the file |
 | `S` (visual) | Substitute the **selection** across the file — visual twin of `<leader>saw` |
 | `<leader>f` | **Format** — whole buffer, or just the selection in visual mode |
-| `ae` | Text object: **the entire file** (`vae`, `yae`, `=ae`, …) |
+| `ae` (visual / operator-pending) | Text object: **the entire file** (`vae`, `yae`, `=ae`, …) |
 | `<leader>w` | Toggle color-highlight on word under cursor (quickhl-style) |
 | `mm` / `mn` / `mp` / `dm` | Toggle bookmark / next / prev / clear (marks.nvim) |
-| `/` | Flash jump, 2 chars, across windows (old `easymotion-overwin-f2`) |
+| `/` (Normal mode only) | Flash jump, 2 chars, across windows; visual/operator-pending `/` stays native |
 | `<leader>/` | Native `/` search (regex, history, `n`/`N`) |
-| `<leader><leader>` | Flash jump (free-length) |
-| `<leader>S` | Flash treesitter select |
-| `gs` / `gS` (visual) | Surround selection — moved off `S`, which is now substitute |
+| `<leader><leader>` (normal / visual / operator-pending) | Flash jump (free-length) |
+| `<leader>S` (normal / visual / operator-pending) | Flash treesitter select |
+| `gs` / `gS` (visual) | Surround selection / surround on new lines (nvim-surround); `S` substitutes instead |
 | `gc` / `gcc` | Comment (native, built-in) |
 | `<Esc>` | Clear search highlight |
+
+### Folding and list navigation
+| Key | Action |
+|---|---|
+| `<leader>0` | Open all folds (sets fold level to 99) |
+| `<leader>1` … `<leader>9` | Set fold level to 0 … 8: `1` closes all folds, higher numbers leave more outer levels open |
+| `<Enter>` | Open a closed fold or close the innermost fold under the cursor; otherwise native Enter |
+| `<Enter>` in quickfix / location list | Jump to the entry and close that list |
+
+Other special buffers retain native Enter. Folds use Treesitter and start open.
+
+### Surround plugin defaults (nvim-surround)
+These stay enabled alongside the custom visual `gs` / `gS` mappings above.
+
+| Key | Action |
+|---|---|
+| `ys{motion}{pair}` / `yss{pair}` | Surround a motion / current line, e.g. `ysiw)` |
+| `yS{motion}{pair}` / `ySS{pair}` | Surround a motion / current line with the pair on new lines |
+| `ds{pair}` | Delete surrounding pair |
+| `cs{old}{new}` / `cS{old}{new}` | Change pair / change pair onto new lines |
+| `<C-g>s` / `<C-g>S` (insert) | Insert a surrounding pair / insert it on new lines |
 
 ### Linediff
 Select one block and press `<leader>gD`, then select the second block and press
@@ -203,12 +267,22 @@ In visual mode only the selection is sent to the formatter. Note this is bounded
 | `gd` | Definition · `gy` type def · `gi` implementation · `gr` references |
 | `K` | Hover docs |
 | `<leader>r` | Rename symbol · `<leader>A` code action |
-| `<leader>e` | Line diagnostics float · `<leader>F` format |
+| `<leader>e` | Line diagnostics float · `<leader>F` format buffer via LSP (not conform) |
 | `]d` / `[d` | Next / previous diagnostic |
 
 ### Completion (blink.cmp, `super-tab` preset)
-`<Tab>`/`<S-Tab>` select & accept and jump between snippet placeholders; `<C-Space>`
-opens the menu; `<C-e>` dismisses. Sources: LSP, snippets, path, buffer.
+These are insert-mode plugin defaults, not Normal-mode window bindings.
+Sources: LSP, snippets, path, buffer.
+
+| Key | Action |
+|---|---|
+| `<Tab>` | Accept completion (selecting the first item if needed); otherwise jump to next snippet placeholder, then native Tab |
+| `<S-Tab>` | Jump to previous snippet placeholder; otherwise native Shift-Tab (does not select the previous completion) |
+| `<Up>` / `<Down>` or `<C-p>` / `<C-n>` | Select previous / next completion |
+| `<C-Space>` | Show completion menu, then show / hide documentation |
+| `<C-e>` | Cancel completion; otherwise native behavior |
+| `<C-b>` / `<C-f>` | Scroll completion documentation up / down |
+| `<C-k>` | Show / hide signature help; otherwise native behavior |
 
 ## Search tips and performance
 
@@ -232,6 +306,11 @@ way to reduce unrelated results while tolerating missing characters where needed
 
 `;r` uses ripgrep's **regex matching**, rather than fuzzy matching. It searches files
 as you type and feeds only matching lines to the picker.
+
+The search window title reminds you that **Ctrl-g alternates search modes**.
+The header names the mode you will switch **to**. With `;g` / `;G`, the first
+press switches from fuzzy matching to live regex; the next press fuzzy-filters
+those regex results. Start with `;r` for regex-then-fuzzy refinement with one press.
 
 ### Default search exclusions
 
@@ -314,7 +393,6 @@ Further reading:
 - [fzf-lua: search commands](https://github.com/ibhagwan/fzf-lua#search)
 
 ## Notes
-- Test-runner workflow (old vimux `!t` / `!!`) is left as a minimal terminal placeholder
-  under the `!` namespace — wire up your tmux flow there later.
+- `!!` runs a command in a reusable tmux pane; there is no dedicated `!t` test-runner mapping.
 - The `<leader>w` word highlighter uses window-local `matchadd`, so highlights are
   per-window (fine for a starter).

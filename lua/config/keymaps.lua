@@ -1,4 +1,5 @@
--- All key bindings live here.
+-- Shared key bindings live here. Lazy-loading keys stay in plugin specs;
+-- preview-buffer mappings stay with their local state in config/diagram.lua.
 --
 -- Namespace-prefix pattern (ported from the vim-plug config): a single key is
 -- turned into a readable, named "namespace" so bindings stay self-documenting:
@@ -38,13 +39,18 @@ map('n', '<leader>q', 'q', { desc = 'Record macro (native q)' })
 map('n', '<leader>saw', [[:%s/\<<C-r><C-w>\>//g<Left><Left>]], { desc = 'Substitute word in file' })
 
 -- S (visual): same idea for an arbitrary selection instead of the cursor word.
--- Takes over from nvim-surround's visual mapping, which moves to `gs` (see
--- plugins/editor.lua).
+-- Takes over from nvim-surround's visual mapping, which moves to `gs` below.
 map('x', 'S', util.substitute_visual_selection, {
   expr = true,
   replace_keycodes = true,
   desc = 'Substitute selection in file',
 })
+
+-- nvim-surround: move visual surround off S (substitute selection above).
+-- The plugin spec disables its default visual mappings before it loads.
+-- gS keeps the plugin's linewise variant; <Plug> targets resolve on use.
+map('x', 'gs', '<Plug>(nvim-surround-visual)', { desc = 'Surround selection' })
+map('x', 'gS', '<Plug>(nvim-surround-visual-line)', { desc = 'Surround selection, on new lines' })
 
 -- `ae` — "the entire file" text object (replaces kana/vim-textobj-entire, which
 -- needed vim-textobj-user as a dependency; a two-line mapping does the same job).
