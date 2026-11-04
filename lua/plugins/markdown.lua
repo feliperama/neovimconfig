@@ -63,6 +63,13 @@ return {
       html = { enabled = false },
       yaml = { enabled = false },
       code = { disable = { 'mermaid' } }, -- diagram.nvim owns these blocks
+      -- Heavy perimeter, thin columns and body-row separators (display only).
+      pipe_table = {
+        border = { '┏', '┯', '┓', '┠', '┼', '┨', '┗', '┷', '┛', '│', '─' },
+      },
+      custom_handlers = {
+        markdown = { parse = function(ctx) return require('config.markdown_tables').parse(ctx) end },
+      },
       win_options = {
         wrap = { default = true, rendered = true },
         linebreak = { default = true, rendered = true },

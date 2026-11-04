@@ -73,6 +73,10 @@ from blink.cmp's preset. Preview-only bindings stay with their local preview sta
 
 `render-markdown.nvim` styles headings, lists, tables, and code, with soft wrapping
 and hidden column guides while reading. Insert mode reveals the raw Markdown.
+Tables use heavy top/bottom borders and thin column and body-row separators.
+These rules are display-only: the Markdown source is unchanged. The custom handler
+in `lua/config/markdown_tables.lua` reuses render-markdown's internal table parser;
+recheck wrapped tables after plugin updates.
 `diagram.nvim` renders Mermaid fences inline through `image.nvim`, using the Kitty
 graphics backend supported by Ghostty and the `magick_cli` processor.
 `lua/config/image.lua` replaces the processor's basic box-sampling resize with
