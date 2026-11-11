@@ -171,8 +171,11 @@ search exclusions, and large-workspace workflows.
 | `fy` | Copy **relative** path + `:line` to clipboard |
 | `fY` | Copy **absolute** path + `:line` to clipboard |
 | `fm` | Rename/move current file via **LSP** (updates imports) |
+| `fde` | Delete current file from disk and close its buffer (discards unsaved edits) |
 | `fe` | Toggle file explorer (neo-tree) |
 | `ff` | Reveal current file in explorer |
+
+The file explorer shows hidden and Git-ignored files by default.
 
 ### `s` — Windows
 | Key | Action |

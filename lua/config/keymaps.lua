@@ -138,6 +138,7 @@ local f = namespace('Files', 'f')
 f('y', util.copy_relative_path, 'Copy relative path + line')
 f('Y', util.copy_absolute_path, 'Copy absolute path + line')
 f('m', util.lsp_rename_file, 'Rename/move file (LSP)')
+f('de', util.delete_current_file, 'Delete current file')
 f('e', '<cmd>Neotree toggle<cr>', 'Toggle file explorer')
 f('f', function()
   require('neo-tree.command').execute({

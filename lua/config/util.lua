@@ -25,6 +25,21 @@ function M.copy_absolute_path()
   yank(abs .. ':' .. vim.fn.line('.'))
 end
 
+-- fde: delete the current file from disk and close its buffer.
+function M.delete_current_file()
+  local buf = vim.api.nvim_get_current_buf()
+  local path = vim.api.nvim_buf_get_name(buf)
+  if vim.bo[buf].buftype ~= '' or path == '' then
+    return vim.notify('No file to delete', vim.log.levels.WARN)
+  end
+  local ok, err = vim.uv.fs_unlink(path)
+  if not ok then
+    return vim.notify('Could not delete file: ' .. err, vim.log.levels.ERROR)
+  end
+  vim.api.nvim_buf_delete(buf, { force = true })
+  vim.notify('Deleted: ' .. path)
+end
+
 -- <leader>w: quickhl-style toggle. Assign a persistent color to the word under
 -- the cursor; press again on the same word to clear it. matchadd() is
 -- window-local, which is fine for a starter.
