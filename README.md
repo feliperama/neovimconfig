@@ -51,6 +51,7 @@ network:
 ```
 init.lua                  entry: leader, options, lazy bootstrap, module requires
 lua/config/options.lua    editor settings
+lua/config/environment.lua shared VS Code / standalone environment detection
 lua/config/keymaps.lua    shared key bindings (namespace prefixes + LSP + motion + git …)
 lua/config/util.lua       helpers (copy path, quickhl, LSP rename-file, substitute)
 lua/config/diagram.lua    Mermaid renderer + preview-local key bindings
@@ -68,6 +69,34 @@ lua/plugins/markdown.lua  Markdown styling, inline images + Mermaid diagrams
 
 Lazy-loading Markdown shortcuts stay in their plugin specs; completion keys come
 from blink.cmp's preset. Preview-only bindings stay with their local preview state.
+
+## VS Code Neovim
+
+The same configuration supports incremental adaptation for VSCode Neovim.
+`lua/config/environment.lua` reads `vim.g.vscode`, which the extension sets before
+loading `init.lua`, and exposes `is_vscode` and `is_standalone`.
+
+Markdown rendering (`render-markdown.nvim`, `image.nvim`, and `diagram.nvim`) uses
+`cond = environment.is_standalone` in its plugin specs. In VS Code these plugins
+and their `<Space>md`, `<Space>mo`, `<Space>mR`, and `<Space>mr` bindings are inactive.
+Lazy's `cond` retains installed plugins for standalone Neovim, including when
+running `:Lazy clean` from VS Code. The Markdown shortcuts below apply only to
+standalone Neovim.
+
+For further migration, keep one shared configuration and adapt at ownership boundaries:
+
+- **Environment detection:** reuse `config.environment` instead of spreading
+  `vim.g.vscode` checks throughout the configuration.
+- **Plugins:** gate terminal/editor-UI plugins with `cond` in their specs; keep
+  plugin-specific bindings there so they follow the same gate.
+- **Options and shared mappings:** keep these in `config.options` and
+  `config.keymaps`; gate host-specific sections with the same environment module.
+- **Operations with two implementations:** as they are migrated, put VS Code
+  command calls behind a small adapter (for example `config.actions`), letting
+  shared mappings call the same action in either host. Add this when needed.
+
+This first step gates only the Markdown rendering stack. Other plugin and mapping
+adaptations can follow independently.
 
 ## Markdown in Ghostty + tmux
 

@@ -1,7 +1,10 @@
 -- Markdown reading + inline diagrams through Ghostty's Kitty graphics protocol.
+local environment = require('config.environment')
+
 return {
   {
     '3rd/image.nvim',
+    cond = environment.is_standalone,
     ft = 'markdown',
     build = false, -- use ImageMagick's CLI; no LuaRocks bindings needed
     config = function(_, opts) require('config.image').setup(opts) end,
@@ -24,6 +27,7 @@ return {
   },
   {
     '3rd/diagram.nvim',
+    cond = environment.is_standalone,
     ft = 'markdown',
     dependencies = { '3rd/image.nvim', 'nvim-treesitter/nvim-treesitter' },
     config = function(_, opts) require('config.diagram').setup(opts) end,
@@ -56,6 +60,7 @@ return {
   },
   {
     'MeanderingProgrammer/render-markdown.nvim',
+    cond = environment.is_standalone,
     ft = 'markdown',
     dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' },
     opts = {
