@@ -30,3 +30,4 @@ require('lazy').setup({
 })
 
 require('config.keymaps')
+require('config.tmux_open').register()

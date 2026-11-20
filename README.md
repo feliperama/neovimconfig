@@ -98,6 +98,22 @@ For further migration, keep one shared configuration and adapt at ownership boun
 This first step gates only the Markdown rendering stack. Other plugin and mapping
 adaptations can follow independently.
 
+## OpenCode file references in tmux
+
+On this Mac, `~/.tmux.conf` binds **Option-click** on a path in the OpenCode
+pane. It opens the file as a buffer in the existing Neovim pane to its right,
+then focuses that pane. Relative paths use the OpenCode pane's working directory;
+`path:line[:column]` and local `file://` links are supported. Normal clicks and
+web links are unchanged. If a path wraps across screen lines or has spaces,
+use a single-line `file://` link with spaces encoded as `%20`.
+
+Without a mouse, use `Ctrl-b` then `/` to search tmux history. Put the copy-mode
+cursor on the path and press `O` (Shift-o) to open it in Neovim.
+
+New Neovim instances register automatically. For a Neovim already open when
+installing this integration, run `:lua require('config.tmux_open').register()`
+once in the right pane; no restart is needed.
+
 ## Markdown in Ghostty + tmux
 
 `render-markdown.nvim` styles headings, lists, tables, and code, with soft wrapping
