@@ -267,6 +267,7 @@ The file explorer shows hidden and Git-ignored files by default.
 | `q` | Quit current window (overrides native macro recording) |
 | `<leader>q` | Start recording a macro; then choose a register (native `q` stops recording) |
 | `<leader>saw` | Substitute word under cursor across the file |
+| `s` (visual) | Open `:'<,'>s/` with the cursor after `/` to substitute within selected lines |
 | `S` (visual) | Substitute the **selection** across the file — visual twin of `<leader>saw` |
 | `<leader>f` | **Format** — whole buffer, or just the selection in visual mode |
 | `ae` (visual / operator-pending) | Text object: **the entire file** (`vae`, `yae`, `=ae`, …) |

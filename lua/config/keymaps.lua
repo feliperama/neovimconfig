@@ -38,6 +38,9 @@ map('n', '<leader>q', 'q', { desc = 'Record macro (native q)' })
 -- cursor in the (empty) replacement slot, ready to type.
 map('n', '<leader>saw', [[:%s/\<<C-r><C-w>\>//g<Left><Left>]], { desc = 'Substitute word in file' })
 
+-- Visual : supplies the selected line range; leave the pattern ready to type.
+map('x', 's', ':s/', { desc = 'Substitute within selected lines' })
+
 -- S (visual): same idea for an arbitrary selection instead of the cursor word.
 -- Takes over from nvim-surround's visual mapping, which moves to `gs` below.
 map('x', 'S', util.substitute_visual_selection, {
